@@ -1,16 +1,21 @@
 import pytest
+import sys
 
 from datetime import datetime
 
-from ..models.twitter_post import TwitterPost
-from ..models.image import Image
+sys.path.append('../')
+
+from models.twitter_post import TwitterPost
+from models.post_strategy import PostStrategy
+from models.image import Image
 
 @pytest.fixture
 def twitter_post():
     return TwitterPost(
         'Twitter',
         'My first scheduled tweet',
-        datetime.strptime('2020-11-01 17:0:00', '%Y-%m-%d %H:%M:%S')
+        datetime.strptime('2020-11-01 17:0:00', '%Y-%m-%d %H:%M:%S'),
+        1
     )
 
 def test_app_to_dict(twitter_post):
@@ -28,8 +33,24 @@ def test_dt_scheduled_to_dict(twitter_post):
     post_dict = post.to_dict()
     assert post_dict['dt_scheduled'] == expected_value
 
-def test_push_image(twitter_post):
-    image = Image(filename='image_test.jpg', location=None, people=None)
-    image.create()
-    post.push_image(image)
-    assert image.id in [post_image.id for post_image in post.images]
+def test_user(twitter_post):
+    expected_value = 1
+    assert expected_value == twitter_post.user
+
+def test_get_inputs(twitter_post):
+    expected_value = [
+        {
+            'input': 'name',
+            'title': 'Name'
+        },
+        {
+            'input': 'text',
+            'name': 'Tweet'
+        },
+        {
+            'input': 'dt_scheduled',
+            'name': 'Date to post'
+        }
+    ]
+    inputs = twitter_post.get_inputs()
+    assert expected_value.sort() == inputs.sort()
