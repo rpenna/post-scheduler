@@ -1,0 +1,40 @@
+[
+    {
+        "email": "first@user.com",
+        "password": "ds6fds89f7df0g9",
+        "name": "Owner User Name",
+        "accounts": [
+            {
+                "app": "Twitter",
+                "login": "myTwitterAccount",
+                "password": "789dfs789dfs",
+                "permission": "owner"
+            },
+            {
+                "app": "Instagram",
+                "login": "myInstagramAccount",
+                "password": "gdf8gd7f9gs",
+                "permission": "owner"
+            }
+        ]
+    },
+    {
+        "email": "auxiliar@user.com",
+        "password": "ds89f7s98df7s9d8",
+        "name": "Auxiliar User Name",
+        "accounts": [
+            {
+                "app": "Twitter",
+                "login": "myBossTwitterAccount",
+                "password": "ds9f08ds0f98sd0",
+                "permission": "auxiliar"
+            },
+            {
+                "app": "Instagram",
+                "login": "myBossInstagramAccount",
+                "password": "b0cvb0",
+                "permission": "auxiliar"
+            }
+        ]
+    }
+]
