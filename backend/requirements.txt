@@ -1,5 +1,10 @@
 flask
+pymongo
 pytest
 pytest-cov
 pytest-flask
+pytest-mongodb
 mongomock
+mongoengine
+flask-mongoengine
+passlib
