@@ -1,21 +1,19 @@
+# pytest good practices: https://realpython.com/pytest-python-testing/
+
 import pytest
 import sys
 
 from datetime import datetime
 
-sys.path.append('../')
-
-from models.twitter_post import TwitterPost
-from models.post_strategy import PostStrategy
-from models.image import Image
+from backend.models.twitter_post import TwitterPost
+#from backend.models.post_strategy import PostStrategy
+from backend.models.image import Image
 
 @pytest.fixture
 def twitter_post():
     return TwitterPost(
-        'Twitter',
         'My first scheduled tweet',
-        datetime.strptime('2020-11-01 17:0:00', '%Y-%m-%d %H:%M:%S'),
-        1
+        datetime.strptime('2020-11-01 17:0:00', '%Y-%m-%d %H:%M:%S')
     )
 
 def test_app_to_dict(twitter_post):
