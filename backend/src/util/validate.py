@@ -22,5 +22,5 @@ def password(text: str) -> None:
     Raises:
         ValidationError: The password is invalid
     """
-    if not text:
+    if not text or type(text) != str:
         raise ValidationError('Invalid password')
