@@ -1,4 +1,4 @@
-# pytest good practices: https://realpython.com/pytest-python-testing/
+""" # pytest good practices: https://realpython.com/pytest-python-testing/
 
 import pytest
 import sys
@@ -52,3 +52,4 @@ def test_get_inputs(twitter_post):
     ]
     inputs = twitter_post.get_inputs()
     assert expected_value.sort() == inputs.sort()
+ """

@@ -14,8 +14,7 @@ class User(Document):
 
     password = StringField(
         max_length=100, 
-        required=True, 
-        validation=validate.password
+        required=True
     )
 
     name = StringField(max_length=150)

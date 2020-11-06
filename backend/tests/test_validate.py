@@ -1,5 +1,5 @@
 import pytest
-from mongoengine import ValidationError
+from src.util.exceptions import InvalidPassword, InvalidEmail
 
 from src.util import validate
 
@@ -30,25 +30,27 @@ validate_password_function_test_parameters = [
     (123456, True),
     (True, True),
     (123.45, True),
+    ('short', True),
+    ('', True),
 ]
 
 @pytest.mark.parametrize(
-    'email, should_raise_validation_error', 
+    'email, should_raise_invalid_email', 
     validate_email_function_test_parameters
 )
-def test_validate_email(email: str, should_raise_validation_error: bool):
+def test_validate_email(email: str, should_raise_invalid_email: bool):
     try:
         validate.email(email)
-    except ValidationError:
-        assert should_raise_validation_error
+    except InvalidEmail:
+        assert should_raise_invalid_email
 
 
 @pytest.mark.parametrize(
-    'text, should_raise_validation_error',
+    'text, should_raise_invalid_password',
     validate_password_function_test_parameters
 )
-def test_validate_password(text: str, should_raise_validation_error: bool):
+def test_validate_password(text: str, should_raise_invalid_password: bool):
     try:
         validate.password(text)
-    except ValidationError:
-        assert should_raise_validation_error
+    except InvalidPassword:
+        assert should_raise_invalid_password

@@ -1,5 +1,6 @@
 # source: https://blog.tecladocode.com/learn-python-encrypting-passwords-python-flask-and-passlib/
 from passlib.context import CryptContext
+from src.util import validate
 
 crypt_context = CryptContext(
         schemes=["pbkdf2_sha256"],
@@ -16,9 +17,8 @@ def encrypt(text: str) -> str:
     Returns:
         str: encrypted text, or empty string if text is None
     """
-    if text is not None:
-        return crypt_context.hash(text)
-    return ''
+    validate.password(text)
+    return crypt_context.hash(text)
 
 def check_encrypted(text: str, encrypted: str) -> bool:
     """Check if the text is equal to the encrypted value

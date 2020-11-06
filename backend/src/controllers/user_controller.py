@@ -1,8 +1,8 @@
 from src.models.user import User
 from src.util import crypto
+from src.util.exceptions import InvalidPassword, InvalidEmail
 
 from flask import jsonify, request, Response
-from mongoengine import ValidationError
 
 class UserController:
     def create_user(self) -> str:
@@ -22,7 +22,7 @@ class UserController:
 
             return Response(status=201)
 
-        except (ValidationError, TypeError) as error:
+        except (InvalidEmail, InvalidPassword) as error:
             return jsonify(
                 {
                     'message': str(error)
