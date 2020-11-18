@@ -117,3 +117,22 @@ def test_create_user_should_return_an_error_message_when_password_is_too_short(c
         data=json.dumps(data_user_password_too_short['body']),
         headers=data_user_password_too_short['headers']
     ).get_json()['message'] == 'Password is too short'
+
+
+def test_create_user_should_not_return_its_auth_token_when_there_is_an_error(client, data_user_password_too_short):
+    response = client.post(
+        '/user',
+        data=json.dumps(data_user_password_too_short['body']),
+        headers=data_user_password_too_short['headers']
+    ).get_json()
+    
+    assert response.get('auth_token') is None
+
+def test_create_user_should_return_its_auth_token(client, data_ok_user):
+    response = client.post(
+        '/user',
+        data=json.dumps(data_ok_user['body']),
+        headers=data_ok_user['headers']
+    ).get_json()
+    
+    assert isinstance(response['auth_token'], str) and len(response['auth_token'])
