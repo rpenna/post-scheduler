@@ -26,7 +26,8 @@ def create_app(db_host_type: str = 'production') -> Flask:
 
     database.init_app(app)
 
-    app.add_url_rule('/user', methods=['POST'], view_func=UserController().create_user)
+    app.add_url_rule('/user', methods=['POST'], view_func=UserController().create)
+    app.add_url_rule('/user/login', methods=['POST'], view_func=UserController().login)
 
     return app
  

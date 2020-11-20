@@ -61,11 +61,12 @@ class UserController:
         except jwt.InvalidTokenError:
             raise InvalidToken
 
-    def create_user(self) -> str:
+    # TODO: user sign up must check if user already exists
+    def create(self) -> tuple:
         """Save user in the database
 
         Returns:
-            str: a JSON-formatted string as HTTP response
+            tuple: (Response, int), Response content and its status code
         """
         try:
             user = User(
@@ -99,3 +100,37 @@ class UserController:
                 }
             ), 401
         """
+
+    def login(self) -> tuple:
+        """Perfirm user's login, if password matchs the existing one.
+
+        Returns:
+            tuple: (Response, int), Response content and its status code
+        """
+        try:
+            email = request.json.get('email')
+            password = request.json.get('password')
+            user = User.objects(email=email)
+
+            if user and crypto.check_encrypted(password, user[0].password):
+                auth_token = self.__encode_auth_token(user[0].email)
+                return jsonify(
+                    {
+                        'auth_token': str(auth_token),
+                        'message': 'User signed in successfully'
+                    }
+                ), 200
+            return jsonify(
+                {
+                    'message': 'Invalid user or password'
+                }
+            ), 401
+        
+        except Exception as error:
+            print(str(error))
+            return jsonify(
+                {
+                    'message': 'Could not complete your request',
+                    'error': str(error),
+                }
+            ), 403
