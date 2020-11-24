@@ -65,11 +65,17 @@ def data_user_password_too_short():
     }
 
 def test_create_user_should_return_status_code_201(client, data_ok_user):
-    assert client.post(
+    response = client.post(
         '/user', 
         data=json.dumps(data_ok_user['body']),
         headers=data_ok_user['headers']
-    ).status_code == 201
+    )
+    
+    assert response.status_code == 201
+
+    response_json = response.get_json()
+    assert isinstance(response_json['auth_token'], str)
+    assert len(response_json['auth_token'])
 
 def test_create_user_should_return_403_status_code_when_email_is_invalid(client, data_user_invalid_email):
     assert client.post(
@@ -127,15 +133,17 @@ def test_create_user_should_not_return_its_auth_token_when_there_is_an_error(cli
     ).get_json()
     
     assert response.get('auth_token') is None
+    
 
-def test_create_user_should_return_its_auth_token(client, data_ok_user):
+def test_create_user_previously_created_should_return_user_already_exists_error(client, data_ok_user):
     response = client.post(
         '/user',
         data=json.dumps(data_ok_user['body']),
         headers=data_ok_user['headers']
-    ).get_json()
-    
-    assert isinstance(response['auth_token'], str) and len(response['auth_token'])
+    )
+
+    assert response.status_code == 403
+    assert response.get_json()['message'] == 'User already exists'
 
 @pytest.mark.parametrize(
     'email, password, expected_status_code',

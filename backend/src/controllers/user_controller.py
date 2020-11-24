@@ -9,6 +9,7 @@ from src.util.exceptions import (
 from src import config
 
 import jwt
+import mongoengine
 
 from flask import jsonify, request, Response
 from datetime import datetime, timedelta
@@ -74,7 +75,7 @@ class UserController:
                 email=request.json.get('email'),
                 password=crypto.encrypt(request.json.get('password'))
             )
-            user.save()
+            user.save(force_insert=True)
 
             auth_token = self.__encode_auth_token(user.name)
 
@@ -92,6 +93,14 @@ class UserController:
                 }
             ), 403
         
+        except mongoengine.errors.NotUniqueError as error:
+            return jsonify(
+                {
+                    'error': str(error),
+                    'message': 'User already exists'
+                }
+            ), 403
+
         #TODO: use the exceptions below when the auth token needs to be validated
         """ except (InvalidToken, ExpiredToken) as error:
             return jsonify(
