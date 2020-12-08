@@ -1,5 +1,7 @@
 import json, pytest
 
+auth_token_ok_user = None
+
 @pytest.fixture
 def data_ok_user():
     mimetype = 'application/json'
@@ -76,6 +78,21 @@ def test_create_user_should_return_status_code_201(client, data_ok_user):
     response_json = response.get_json()
     assert isinstance(response_json['auth_token'], str)
     assert len(response_json['auth_token'])
+    global auth_token_ok_user
+    auth_token_ok_user = response_json['auth_token']
+
+def test_get_user_status(client, data_ok_user):
+    response = client.get(
+        '/user/status',
+        headers=dict(
+            Authorization='Bearer ' + auth_token_ok_user
+        )
+    )
+    print(response.get_json())
+
+    assert response.status_code == 200
+    assert response.get_json().get('email') == data_ok_user['body']['email']
+    assert response.get_json().get('name') == data_ok_user['body']['name']
 
 def test_create_user_should_return_403_status_code_when_email_is_invalid(client, data_user_invalid_email):
     assert client.post(
@@ -172,3 +189,4 @@ def test_user_login(client, email, password, expected_status_code):
     )
 
     assert response.status_code == expected_status_code
+

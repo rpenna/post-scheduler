@@ -10,6 +10,7 @@ from src import config
 
 import jwt
 import mongoengine
+import pytz
 
 from flask import jsonify, request, Response
 from datetime import datetime, timedelta
@@ -26,11 +27,14 @@ class UserController:
         """
         try:
             dt_token_generated = datetime.now()
+            local = pytz.timezone('America/Sao_Paulo')
+            dt_token_generated = local.localize(datetime.now(), is_dst=None)
+            local_dt_utc = dt_token_generated.astimezone(pytz.utc)
 
             payload = {
                 'sub': name,
-                'exp': dt_token_generated + timedelta(seconds=10),
-                'iat': dt_token_generated
+                'exp': local_dt_utc + timedelta(seconds=60),
+                'iat': local_dt_utc
             }
 
             return jwt.encode(
@@ -125,7 +129,7 @@ class UserController:
                 auth_token = self.__encode_auth_token(user[0].email)
                 return jsonify(
                     {
-                        'auth_token': str(auth_token),
+                        'auth_token': auth_token.decode('utf-8'),
                         'message': 'User signed in successfully'
                     }
                 ), 200
@@ -143,3 +147,43 @@ class UserController:
                     'error': str(error),
                 }
             ), 403
+
+    def get(self) -> tuple:
+        """Find user using the auth token and return its data
+
+        Returns:
+            tuple: (Response, int), Response object and its status code
+        """
+        try:
+            authorization = request.headers.get('Authorization')
+            
+            if authorization is None:
+                return jsonify(
+                    {
+                        'message': 'No authorization token declared'
+                    }
+                ), 400
+
+            token = authorization[9:-1]
+            name = self.__decode_auth_token(token)
+            user = User.objects(name=name)
+            
+            print(dir(user))
+            if user:
+                return jsonify(
+                    {
+                        'name': user[0].name,
+                        'email': user[0].email
+                    }
+                ), 200
+            
+            return jsonify(
+                {
+                    'message': 'Invalid token'
+                }
+            ), 401
+
+        except Exception as error:
+            return jsonify({
+                'error': str(error)
+            }), 404
