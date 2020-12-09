@@ -1,10 +1,13 @@
 from src.models.user import User
+from src.models.blacklist import Blacklist
+
 from src.util import crypto
 from src.util.exceptions import (
     InvalidPassword, 
     InvalidEmail,
     InvalidToken,
-    ExpiredToken
+    ExpiredToken,
+    TokenNotDeclared
 )
 from src import config
 
@@ -16,11 +19,11 @@ from flask import jsonify, request, Response
 from datetime import datetime, timedelta
 
 class UserController:
-    def __encode_auth_token(self, name: str) -> bytes:
+    def __encode_auth_token(self, email: str) -> bytes:
         """Encode user's auth token
 
         Args:
-            name (str): user identification
+            email (str): user identification
 
         Returns:
             str: token generated via jwt
@@ -32,7 +35,7 @@ class UserController:
             local_dt_utc = dt_token_generated.astimezone(pytz.utc)
 
             payload = {
-                'sub': name,
+                'sub': email,
                 'exp': local_dt_utc + timedelta(seconds=60),
                 'iat': local_dt_utc
             }
@@ -53,7 +56,7 @@ class UserController:
             auth_token (bytes): token to be decoded
 
         Returns:
-            str: user's name
+            str: user's e-mail
         """
         try:
             payload = jwt.decode(auth_token, config.token['key'])
@@ -66,7 +69,49 @@ class UserController:
         except jwt.InvalidTokenError:
             raise InvalidToken
 
-    # TODO: user sign up must check if user already exists
+    def __get_auth_token(self) -> str:
+        """Gets authorization token from headers
+
+        Returns:
+            str: Authorization token. If None, returns empty string
+        
+        Raises:
+            TokenNotDeclared: excepction raised when the token has not been
+            found on headers
+        """
+        try:
+            authorization = request.headers.get('Authorization')
+            if authorization is None:
+                raise TokenNotDeclared
+
+            return authorization.split('Bearer ')[1]
+        
+        except IndexError:
+            raise TokenNotDeclared
+
+    def __insert_into_blacklist(self, token: str) -> None:
+        """Insert token into blacklist
+
+        Args:
+            token (str): Token to be inserted
+        """
+        blacklist = Blacklist(token=token)
+        blacklist.save()
+    
+    def __is_token_blacklisted(self, token: str) -> bool:
+        """Search for token in blacklist and inform wheter it's blacklisted or
+        not
+
+        Args:
+            token (str): Token to be found
+
+        Returns:
+            bool: True if token is blacklisted, False if not
+        """
+        blacklist = Blacklist.objects(token=token)
+
+        return len(blacklist) > 0
+
     def create(self) -> tuple:
         """Save user in the database
 
@@ -84,8 +129,7 @@ class UserController:
             auth_token = self.__encode_auth_token(user.name)
 
             response = {
-                'message': 'User created successfully',
-                'auth_token': str(auth_token)
+                'message': 'User created successfully'
             }
 
             return jsonify(response), 201
@@ -105,15 +149,6 @@ class UserController:
                 }
             ), 403
 
-        #TODO: use the exceptions below when the auth token needs to be validated
-        """ except (InvalidToken, ExpiredToken) as error:
-            return jsonify(
-                {
-                    'message': str(error)
-                }
-            ), 401
-        """
-
     def login(self) -> tuple:
         """Perfirm user's login, if password matchs the existing one.
 
@@ -132,7 +167,7 @@ class UserController:
                         'auth_token': auth_token.decode('utf-8'),
                         'message': 'User signed in successfully'
                     }
-                ), 200
+                ), 201
             return jsonify(
                 {
                     'message': 'Invalid user or password'
@@ -155,20 +190,16 @@ class UserController:
             tuple: (Response, int), Response object and its status code
         """
         try:
-            authorization = request.headers.get('Authorization')
+            token = self.__get_auth_token()
             
-            if authorization is None:
-                return jsonify(
-                    {
-                        'message': 'No authorization token declared'
-                    }
-                ), 400
+            if self.__is_token_blacklisted(token):
+                print('blacklisted')
+                raise InvalidToken
+            
+            email = self.__decode_auth_token(token)
+            
+            user = User.objects(email=email)
 
-            token = authorization[9:-1]
-            name = self.__decode_auth_token(token)
-            user = User.objects(name=name)
-            
-            print(dir(user))
             if user:
                 return jsonify(
                     {
@@ -177,13 +208,50 @@ class UserController:
                     }
                 ), 200
             
+            else:
+                self.__insert_into_blacklist(token)
+                raise InvalidToken
+
+        except (InvalidToken, ExpiredToken, TokenNotDeclared) as error:
             return jsonify(
                 {
-                    'message': 'Invalid token'
+                    'message': str(error)
                 }
             ), 401
-
+        
         except Exception as error:
             return jsonify({
                 'error': str(error)
             }), 404
+
+    def logout(self) -> tuple:
+        """Perform user's logout by using his auth token
+
+        Returns:
+            tuple: (Response, int), HTTP Response object and its status code
+        """
+        try:
+            token = self.__get_auth_token()
+
+            if not self.__is_token_blacklisted(token):
+                self.__insert_into_blacklist(token)
+            
+            email = self.__decode_auth_token(token)
+            user = User.objects(email=email)
+
+            if user:    
+                return jsonify(
+                    {
+                        'message': 'User logged out successfully'
+                    }
+                ), 201
+            
+            else:
+                raise InvalidToken
+
+        except (InvalidToken, ExpiredToken, TokenNotDeclared) as error:
+            return jsonify(
+                {
+                    'message': str(error)
+                }
+            ), 401

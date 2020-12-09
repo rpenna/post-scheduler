@@ -13,3 +13,11 @@ class InvalidToken(Exception):
 class ExpiredToken(Exception):
     def __init__(self, message='The token has expired'):
         super().__init__(message)
+
+class TokenNotDeclared(Exception):
+    def __init__(
+        self, 
+        message='The token has not been declared or was declared using an '\
+            'invalid format'
+    ):
+        super().__init__(message)
