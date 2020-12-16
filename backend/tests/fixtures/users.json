@@ -1,0 +1,40 @@
+[
+    {
+        "email": "rachel_green@friends.com",
+        "password": "ds6fds89f7df0g9",
+        "name": "Rachel Green",
+        "accounts": [
+            {
+                "app": "Twitter",
+                "login": "rachel_green",
+                "password": "789dfs789dfs",
+                "permission": "owner"
+            },
+            {
+                "app": "Instagram",
+                "login": "rachel_green",
+                "password": "gdf8gd7f9gs",
+                "permission": "owner"
+            }
+        ]
+    },
+    {
+        "email": "ross@geller.com",
+        "password": "ds89f7s98df7s9d8",
+        "name": "Ross Geller",
+        "accounts": [
+            {
+                "app": "Twitter",
+                "login": "ross_geller",
+                "password": "ds9f08ds0f98sd0",
+                "permission": "auxiliar"
+            },
+            {
+                "app": "Instagram",
+                "login": "ross_geller",
+                "password": "b0cvb0",
+                "permission": "auxiliar"
+            }
+        ]
+    }
+]
